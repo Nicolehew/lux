@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
+const cookieSession = require('cookie-session');
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 
@@ -10,11 +10,16 @@ const PORT = process.env.PORT || 3000;
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 app.use(express.json());
-app.use(session({
+
+// cookie-session: stores auth state in a signed cookie — no server-side memory,
+// works on Vercel serverless (unlike express-session's default MemoryStore).
+app.use(cookieSession({
+  name: 'lux_sess',
   secret: process.env.SESSION_SECRET || 'lux-internal-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 8 * 60 * 60 * 1000 } // 8 hours
+  maxAge: 8 * 60 * 60 * 1000, // 8 hours
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production'
 }));
 
 // Serve login page without auth
@@ -43,7 +48,8 @@ app.post('/api/login', (req, res) => {
 });
 
 app.post('/api/logout', (req, res) => {
-  req.session.destroy(() => res.json({ success: true }));
+  req.session = null; // cookie-session: clear by nulling the session
+  res.json({ success: true });
 });
 
 // ── Products ──────────────────────────────────────────────────────────────────
@@ -552,4 +558,10 @@ app.delete('/api/members/:id', async (req, res) => {
   res.json({ success: true });
 });
 
-app.listen(PORT, () => console.log(`Lux Sales running at http://localhost:${PORT}`));
+// Local dev: start the server normally
+// Vercel: imports this file as a module — app.listen must NOT run
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Lux Sales running at http://localhost:${PORT}`));
+}
+
+module.exports = app;
