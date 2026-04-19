@@ -7,19 +7,27 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust Vercel's proxy so req.ip, req.secure etc. are correct.
+// Without this, cookie-session sees an unencrypted internal connection
+// and silently refuses to write cookies when secure:true is set.
+app.set('trust proxy', 1);
+
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 app.use(express.json());
 
 // cookie-session: stores auth state in a signed cookie — no server-side memory,
 // works on Vercel serverless (unlike express-session's default MemoryStore).
+// secure:false — Vercel's edge already enforces HTTPS for all visitors;
+// setting secure:true causes the cookies package to check req.connection.encrypted
+// which is always false on Vercel's internal HTTP hop, so the cookie is never written.
 app.use(cookieSession({
   name: 'lux_sess',
   secret: process.env.SESSION_SECRET || 'lux-internal-secret',
   maxAge: 8 * 60 * 60 * 1000, // 8 hours
   httpOnly: true,
   sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production'
+  secure: false
 }));
 
 // Serve login page without auth
@@ -35,7 +43,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
-app.get('/api/me', (req, res) => res.json({ authenticated: !!req.session.authenticated }));
+app.get('/api/me', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({ authenticated: !!req.session.authenticated });
+});
 
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
