@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lux — Members</title>
+  <script>
+    (function(){ var t=localStorage.getItem('lux-theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>LUX</h1>
+    <p>Sales Dashboard</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Overview</div>
+    <a href="/"><span class="icon">📊</span> Dashboard</a>
+    <a href="/inventory.html"><span class="icon">📦</span> Inventory</a>
+    <div class="nav-section">Management</div>
+    <a href="/quotes.html"><span class="icon">📋</span> Quotes</a>
+    <a href="/invoices.html"><span class="icon">🧾</span> Invoices</a>
+    <a href="/customers.html"><span class="icon">👥</span> Customers</a>
+    <a href="/members.html" class="active"><span class="icon">⭐</span> Members</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-section">Account</div>
+    <a onclick="logout()"><span class="icon">🚪</span> Sign Out</a>
+  </div>
+</aside>
+
+<div class="app-body">
+  <header class="topbar">
+    <div class="topbar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search members..." readonly onclick="this.blur()">
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" title="Notifications">🔔</button>
+      <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <div class="topbar-divider"></div>
+      <div class="user-pill">
+        <div class="user-avatar">N</div>
+        <span class="user-name">Nicole</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Members</div>
+        <div class="page-subtitle">Loyalty members &amp; points</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAdd()">+ Add Member</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card">
+        <div class="stat-label">Total Members</div>
+        <div class="stat-value stat-gold" id="stat-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">VIP</div>
+        <div class="stat-value" style="color:var(--gold)" id="stat-vip">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Gold</div>
+        <div class="stat-value" style="color:#b8901f" id="stat-gold">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Silver</div>
+        <div class="stat-value" style="color:var(--text-muted)" id="stat-silver">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="margin-bottom:16px">
+        <input id="search-box" class="form-control" style="max-width:300px" placeholder="Search by name, ID, phone...">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Member ID</th><th>Name</th><th>Phone</th><th>Email</th>
+              <th>Tier</th><th>Points</th><th>Joined</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="members-tbody">
+            <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add / Edit Member Modal -->
+<div class="modal-overlay" id="m-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="m-modal-title">Add Member</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <form id="m-form" onsubmit="return false">
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input id="m-name" class="form-control" placeholder="Full name" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input id="m-phone" class="form-control" placeholder="e.g. 012-345 6789">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input id="m-email" type="email" class="form-control" placeholder="name@email.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea id="m-notes" class="form-control" rows="2" placeholder="e.g. Prefers black socks"></textarea>
+      </div>
+    </form>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMember()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Points Modal -->
+<div class="modal-overlay" id="pts-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">Adjust Points</div>
+      <button class="modal-close" onclick="closePts()">×</button>
+    </div>
+    <div>
+      <div style="font-size:14px;color:var(--text-muted);margin-bottom:16px" id="pts-member-name"></div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-secondary" style="flex:1;font-size:16px" onclick="stepPts(-50)">−50</button>
+        <button class="btn btn-secondary" style="flex:1;font-size:16px" onclick="stepPts(-10)">−10</button>
+        <input id="pts-input" type="number" class="form-control" style="text-align:center;font-size:18px;font-weight:700;width:80px;flex-shrink:0" value="10">
+        <button class="btn btn-primary" style="flex:1;font-size:16px" onclick="stepPts(10)">+10</button>
+        <button class="btn btn-primary" style="flex:1;font-size:16px" onclick="stepPts(50)">+50</button>
+      </div>
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Current Points</div>
+        <div style="font-size:32px;font-weight:700;color:var(--gold)" id="pts-current">0</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePts()">Cancel</button>
+      <button class="btn btn-danger" onclick="applyPoints(-1)">Deduct</button>
+      <button class="btn btn-primary" onclick="applyPoints(1)">Add Points</button>
+    </div>
+  </div>
+</div>
+
+<!-- Member Card Modal -->
+<div class="modal-overlay" id="card-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">Member Card</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="printCard()">Print</button>
+        <button class="modal-close" onclick="closeCard()">×</button>
+      </div>
+    </div>
+    <div style="padding:20px 24px 24px">
+      <div id="member-card-preview" style="background:#111;border-radius:16px;padding:28px;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px">
+          <div style="font-size:22px;font-weight:900;letter-spacing:6px;color:#C9A227">LUX</div>
+          <div id="card-tier-badge" style="font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;text-transform:uppercase"></div>
+        </div>
+        <div style="font-size:20px;font-weight:700;margin-bottom:4px" id="card-name"></div>
+        <div style="font-size:12px;color:#888;margin-bottom:24px" id="card-id"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <div style="font-size:10px;color:#666;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">Points Balance</div>
+            <div style="font-size:30px;font-weight:700;color:#C9A227" id="card-points"></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:#666;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">Member Since</div>
+            <div style="font-size:13px" id="card-joined"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/theme.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/members.js"></script>
+</body>
+</html>

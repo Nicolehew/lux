@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lux — Quotes</title>
+  <script>
+    (function(){ var t=localStorage.getItem('lux-theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>LUX</h1>
+    <p>Sales Dashboard</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Overview</div>
+    <a href="/"><span class="icon">📊</span> Dashboard</a>
+    <a href="/inventory.html"><span class="icon">📦</span> Inventory</a>
+    <div class="nav-section">Management</div>
+    <a href="/quotes.html" class="active"><span class="icon">📋</span> Quotes</a>
+    <a href="/invoices.html"><span class="icon">🧾</span> Invoices</a>
+    <a href="/customers.html"><span class="icon">👥</span> Customers</a>
+    <a href="/members.html"><span class="icon">⭐</span> Members</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-section">Account</div>
+    <a onclick="logout()"><span class="icon">🚪</span> Sign Out</a>
+  </div>
+</aside>
+
+<div class="app-body">
+  <header class="topbar">
+    <div class="topbar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search quotes..." readonly onclick="this.blur()">
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" title="Notifications">🔔</button>
+      <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <div class="topbar-divider"></div>
+      <div class="user-pill">
+        <div class="user-avatar">N</div>
+        <span class="user-name">Nicole</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Quotes</div>
+        <div class="page-subtitle">Create &amp; print customer quotes</div>
+      </div>
+      <button class="btn btn-primary" onclick="openCreateModal()">+ New Quote</button>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Quote #</th><th>Customer</th><th>Total</th>
+              <th>Status</th><th>Date</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="quotes-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Create Quote Modal -->
+<div class="modal-overlay" id="quote-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">New Quote</div>
+      <button class="modal-close" onclick="closeQuoteModal()">×</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Customer</label>
+      <select id="q-customer" class="form-control">
+        <option value="">— Walk-in / No Customer —</option>
+      </select>
+    </div>
+
+    <!-- Add item row -->
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Add Item</div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <select id="item-product" class="form-control">
+            <option value="">Select product...</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <div class="form-group" style="margin-bottom:0;width:80px">
+            <input id="item-qty" type="number" min="1" value="1" class="form-control" placeholder="Qty">
+          </div>
+          <button class="btn btn-primary" onclick="addItem()" style="white-space:nowrap">+ Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items list -->
+    <div class="items-box" id="quote-items">
+      <p style="color:var(--text-muted);text-align:center;padding:16px;font-size:13px">No items added yet</p>
+    </div>
+
+    <!-- Totals -->
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+      <div style="width:220px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);margin-bottom:6px">
+          <span>Subtotal</span><strong id="quote-subtotal">RM0.00</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;border-top:1px solid var(--border);padding-top:8px">
+          <span>Total</span><span id="quote-total" style="color:var(--gold)">RM0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <textarea id="q-notes" class="form-control" rows="2" placeholder="e.g. Bulk order, special request"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeQuoteModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuote()">Save &amp; Print</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/theme.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/quotes.js"></script>
+</body>
+</html>

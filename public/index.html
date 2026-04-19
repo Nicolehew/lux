@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lux — Dashboard</title>
+  <script>
+    (function(){ var t=localStorage.getItem('lux-theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>LUX</h1>
+    <p>Sales Dashboard</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Overview</div>
+    <a href="/" class="active"><span class="icon">📊</span> Dashboard</a>
+    <a href="/inventory.html"><span class="icon">📦</span> Inventory</a>
+    <div class="nav-section">Management</div>
+    <a href="/quotes.html"><span class="icon">📋</span> Quotes</a>
+    <a href="/invoices.html"><span class="icon">🧾</span> Invoices</a>
+    <a href="/customers.html"><span class="icon">👥</span> Customers</a>
+    <a href="/members.html"><span class="icon">⭐</span> Members</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-section">Account</div>
+    <a onclick="logout()"><span class="icon">🚪</span> Sign Out</a>
+  </div>
+</aside>
+
+<div class="app-body">
+  <header class="topbar">
+    <div class="topbar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search..." readonly onclick="this.blur()">
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" title="Notifications">🔔</button>
+      <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <div class="topbar-divider"></div>
+      <div class="user-pill">
+        <div class="user-avatar">N</div>
+        <span class="user-name">Nicole</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- Header -->
+    <div class="page-header" style="margin-bottom:18px">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle" id="current-date"></div>
+      </div>
+      <div class="dash-toolbar">
+        <button class="filter-btn active" data-range="today" onclick="setRange('today')">Today</button>
+        <button class="filter-btn" data-range="week" onclick="setRange('week')">Week</button>
+        <button class="filter-btn" data-range="month" onclick="setRange('month')">Month</button>
+        <button class="filter-btn" data-range="quarter" onclick="setRange('quarter')">Quarter</button>
+        <span class="refresh-badge" id="refresh-countdown"></span>
+        <button class="export-btn" onclick="exportPNG()">⬇ Export</button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Revenue</div>
+        <div class="kpi-value gold" id="kpi-revenue">—</div>
+        <div class="kpi-sub" id="kpi-revenue-sub"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Orders</div>
+        <div class="kpi-value" id="kpi-orders">—</div>
+        <div class="kpi-sub" id="kpi-orders-sub">units sold</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg Order Value</div>
+        <div class="kpi-value" id="kpi-aov">—</div>
+        <div class="kpi-sub" id="kpi-aov-sub">per order</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Outstanding</div>
+        <div class="kpi-value" style="color:var(--warning)" id="kpi-outstanding">—</div>
+        <div class="kpi-sub" id="kpi-outstanding-sub"></div>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-card-title" id="trend-title">30-Day Revenue Trend</div>
+        <canvas id="trendChart" height="110"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Top Products</div>
+        <canvas id="topChart" height="160"></canvas>
+      </div>
+    </div>
+
+    <!-- Invoice status + Low stock -->
+    <div class="grid-2">
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-card-title">Invoice Status</div>
+        <div class="inv-status-grid">
+          <div class="inv-status-item"><div class="num" id="inv-s-unpaid" style="color:var(--warning)">—</div><div class="lbl">Unpaid</div></div>
+          <div class="inv-status-item"><div class="num" id="inv-s-partial" style="color:var(--gold)">—</div><div class="lbl">Partial</div></div>
+          <div class="inv-status-item"><div class="num" id="inv-s-overdue" style="color:var(--danger)">—</div><div class="lbl">Overdue</div></div>
+          <div class="inv-status-item"><div class="num" id="inv-s-paid" style="color:var(--success)">—</div><div class="lbl">Paid</div></div>
+          <div class="inv-status-item"><div class="num" id="inv-s-total" style="color:var(--text)">—</div><div class="lbl">Total</div></div>
+          <div class="inv-status-item"><div class="num" id="inv-s-collected" style="color:var(--success)">—</div><div class="lbl">Collected</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Low Stock Alerts <span style="color:var(--danger)" id="low-stock-count"></span></div>
+        <div id="low-stock"><div class="empty-state"><p>All stock levels OK ✓</p></div></div>
+      </div>
+    </div>
+
+    <!-- Follow-ups -->
+    <div class="card">
+      <div class="card-title">Follow-up Needed <span style="color:var(--warning)" id="followup-count"></span></div>
+      <div id="followup-list"><div class="empty-state"><p>No follow-ups needed</p></div></div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="card">
+      <div class="card-title">Recent Sales</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th><th>SKU</th><th>Qty</th><th>Channel</th><th>Customer</th><th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="recent-sales">
+            <tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text-muted)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="js/theme.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

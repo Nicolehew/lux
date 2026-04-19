@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lux — Customers</title>
+  <script>
+    (function(){ var t=localStorage.getItem('lux-theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>LUX</h1>
+    <p>Sales Dashboard</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Overview</div>
+    <a href="/"><span class="icon">📊</span> Dashboard</a>
+    <a href="/inventory.html"><span class="icon">📦</span> Inventory</a>
+    <div class="nav-section">Management</div>
+    <a href="/quotes.html"><span class="icon">📋</span> Quotes</a>
+    <a href="/invoices.html"><span class="icon">🧾</span> Invoices</a>
+    <a href="/customers.html" class="active"><span class="icon">👥</span> Customers</a>
+    <a href="/members.html"><span class="icon">⭐</span> Members</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-section">Account</div>
+    <a onclick="logout()"><span class="icon">🚪</span> Sign Out</a>
+  </div>
+</aside>
+
+<div class="app-body">
+  <header class="topbar">
+    <div class="topbar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search customers..." readonly onclick="this.blur()">
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" title="Notifications">🔔</button>
+      <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <div class="topbar-divider"></div>
+      <div class="user-pill">
+        <div class="user-avatar">N</div>
+        <span class="user-name">Nicole</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Customers</div>
+        <div class="page-subtitle">Track follow-ups &amp; contact history</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAdd()">+ Add Customer</button>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>Phone</th><th>Email</th>
+              <th>Last Contact</th><th>Follow-up</th><th>Notes</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customers-tbody">
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add / Edit Customer Modal -->
+<div class="modal-overlay" id="c-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="c-modal-title">Add Customer</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+
+    <form id="c-form" onsubmit="return false">
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input id="c-name" class="form-control" placeholder="Customer name" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input id="c-phone" class="form-control" placeholder="e.g. 012-345 6789">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input id="c-email" type="email" class="form-control" placeholder="e.g. name@email.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea id="c-notes" class="form-control" rows="2" placeholder="e.g. Prefers black socks, orders monthly"></textarea>
+      </div>
+    </form>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/theme.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/customers.js"></script>
+</body>
+</html>
